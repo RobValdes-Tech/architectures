@@ -1,0 +1,27 @@
+# Visual Studio / .NET Core
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# Java / Maven / Eclipse / NetBeans
+target/
+*.class
+.metadata/
+.recommenders/
+.classpath
+.project
+.settings/
+nbproject/
+private/
+
+# Node.js
+node_modules/
+npm-debug.log
+
+# IDEs & OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
