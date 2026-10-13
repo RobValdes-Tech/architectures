@@ -19,3 +19,8 @@ Este repositorio es una guía práctica paso a paso diseñada para desarrollador
 - [x] **Fase 1: Arquitectura Monolítica** -> Estructura base inicializada mediante .NET CLI.
 - [ ] **Fase 2: Arquitectura de Microservicios** -> Separación de dominios federados (.NET 8 + Java Spring Boot), bases de datos dedicadas por servicio y mensajería asíncrona con RabbitMQ.
 - [ ] **Fase 3: Arquitectura Serverless** -> Procesamiento asíncrono optimizado y cómputo guiado por eventos bajo demanda.
+
+## 🚀 Hoja de Ruta del Proyecto
+- [x] **Fase 1: Arquitectura Monolítica** -> Desarrollo unificado e inyección de dependencias local con ASP.NET Core Web API.
+- [/] **Fase 2: Arquitectura de Microservicios** -> Inicialización del ecosistema multitecnología. Microservicio de Productos en Java (Spring Boot + MongoDB) estructurado e infraestructura base lista.
+- [ ] **Fase 3: Arquitectura Serverless** -> Procesamiento asíncrono optimizado y cómputo guiado por eventos bajo demanda.
