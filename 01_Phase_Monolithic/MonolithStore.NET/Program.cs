@@ -1,16 +1,25 @@
+using MonolithStore.NET.Modules.Products;
+using MonolithStore.NET.Modules.Orders;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// 1. REGISTRO DE SERVICIOS DEL CONTENEDOR (IoC)
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
+// Configuración nativa de OpenAPI para la documentación del API
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+
+// Registro de nuestros módulos en memoria para el ejercicio de los Juniors
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 2. CONFIGURACIÓN DEL PIPELINE DE PETICIONES HTTP (Middleware)
 if (app.Environment.IsDevelopment())
 {
+    // Expone el endpoint JSON de OpenAPI en desarrollo (v1.json)
     app.MapOpenApi();
 }
 
