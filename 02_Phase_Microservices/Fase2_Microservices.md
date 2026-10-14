@@ -66,3 +66,11 @@ El servicio mapea las transacciones hacia almacenamiento relacional utilizando l
 
 ## 🐳 Orquestación de Infraestructura Local
 Actualiza tu `docker-compose.yml` para incluir **MongoDB** (catalogo, puerto 27017), **PostgreSQL** (`OrderService.NET`, puerto 5432) y **RabbitMQ** (mensajería asíncrona AMQP, puertos 5672/15672 con credenciales predeterminadas `guest / guest`) en la bitácora técnica de la fase.
+
+## 🐳 Orquestación de Infraestructura Local
+Se integró el broker de mensajería asíncrona al archivo `docker-compose.yml` de la Fase 2.
+
+### Servicios Habilitados:
+* **MongoDB (Puerto 27017):** Base de datos documental para el catálogo de productos (`product-service`).
+* **PostgreSQL (Puerto 5432):** Base de datos relacional para la gestión de transacciones (`OrderService.NET`).
+* **RabbitMQ (Puertos 5672 / 15672):** Gestor de colas y eventos asíncronos distribuidos (Consola de administración: `http://localhost:15672`).
