@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MassTransit; // <-- Nueva directiva
 using OrderService.Net.Data;
 using OrderService.Net.Models;
+using OrderService.Net.Shared.Events; // <-- Contrato inmutable del evento
 
 namespace OrderService.Net.Controllers
 {
@@ -10,21 +12,20 @@ namespace OrderService.Net.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly OrderDbContext _context;
+        private readonly IPublishEndpoint _publishEndpoint; // <-- Bus de datos inyectado
 
-        // Inyección de dependencias nativa del DbContext configurado
-        public OrdersController(OrderDbContext context)
+        public OrdersController(OrderDbContext context, IPublishEndpoint publishEndpoint)
         {
             _context = context;
+            _publishEndpoint = publishEndpoint;
         }
 
-        // Endpoint HTTP GET para listar todas las órdenes registradas en PostgreSQL
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
             return await _context.Orders.ToListAsync();
         }
 
-        // Endpoint HTTP POST para registrar una nueva orden de compra de forma transaccional
         [HttpPost]
         public async Task<ActionResult<Order>> CreateOrder([FromBody] OrderCreateDto dto)
         {
@@ -37,15 +38,24 @@ namespace OrderService.Net.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Guardar el registro en la tabla de PostgreSQL de forma asíncrona
+            // 1. Persistencia Relacional en PostgreSQL
             _context.Orders.Add(newOrder);
             await _context.SaveChangesAsync();
+
+            // 2. Publicación Asíncrona en el Broker de RabbitMQ
+            await _publishEndpoint.Publish(new OrderCreatedEvent
+            {
+                OrderId = newOrder.Id,
+                UserId = newOrder.UserId,
+                ProductId = newOrder.ProductId,
+                Quantity = newOrder.Quantity,
+                CreatedAt = newOrder.CreatedAt
+            });
 
             return CreatedAtAction(nameof(GetOrders), new { id = newOrder.Id }, newOrder);
         }
     }
 
-    // DTO seguro para tipar los datos recibidos del cliente externo
     public class OrderCreateDto
     {
         public string UserId { get; set; } = string.Empty;

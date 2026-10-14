@@ -74,3 +74,23 @@ Se integró el broker de mensajería asíncrona al archivo `docker-compose.yml` 
 * **MongoDB (Puerto 27017):** Base de datos documental para el catálogo de productos (`product-service`).
 * **PostgreSQL (Puerto 5432):** Base de datos relacional para la gestión de transacciones (`OrderService.NET`).
 * **RabbitMQ (Puertos 5672 / 15672):** Gestor de colas y eventos asíncronos distribuidos (Consola de administración: `http://localhost:15672`).
+
+
+## 📬 Integración de Mensajería Asíncrona (MassTransit)
+Se añadieron abstracciones del bus de datos en `OrderService.Net` para iniciar la coreografía de eventos distributed:
+
+* **MassTransit & MassTransit.RabbitMQ:** Biblioteca encargada de gestionar de forma automática los exchanges y colas dentro del broker.
+* **Shared/Events/OrderCreatedEvent.cs:** Contrato inmutable que emite el microservicio de órdenes tras persistir una compra en PostgreSQL.
+
+### Estado de Avance del Ecosistema:
+- [x] Broker de RabbitMQ aprovisionado e integrado en la infraestructura global.
+- [x] Dependencias de MassTransit añadidas al proyecto de órdenes.
+- [x] Definición del contrato inmutable del evento `OrderCreatedEvent`.
+- [ ] Inyección de MassTransit en `Program.cs` y publicación del evento desde el controlador.
+
+### Estado de Avance del Ecosistema:
+- [x] Broker de RabbitMQ aprovisionado e integrado en la infraestructura global.
+- [x] Dependencias de MassTransit añadidas al proyecto de órdenes.
+- [x] Definición del contrato inmutable del evento `OrderCreatedEvent`.
+- [x] Configuración de topología de RabbitMQ e inyección del Bus en `Program.cs`.
+- [x] Publicación del evento distribuido desde el endpoint de `OrdersController`.
