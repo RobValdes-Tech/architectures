@@ -13,9 +13,12 @@ El proyecto sigue el estándar de construcción de Maven:
 * `pom.xml`: Manejo de dependencias (Web starter y Data MongoDB).
 * `application.properties`: Configuración de puertos de red (`8081`) y credenciales de conexión al clúster de base de datos.
 * `model/Product.java`: Mapeo documental de la entidad para el motor de persistencia.
-* `repository/ProductRepository.java`: Capa de abstracción de datos utilizando Spring Data Mongo.
+* `repository/ProductRepository.java`: Capa de abstracción de datos utilizando Spring Data Mongo heredando de `MongoRepository`.
+* `controller/ProductController.java`: Controlador REST que expone los endpoints GET y POST para interactuar con el catálogo de productos.
+* `ProductServiceApplication.java`: Clase principal y punto de entrada para inicializar el contexto de Spring Boot.
 
 ## 🚀 Estado de Avance del Ecosistema
 - [x] Árbol físico de directorios inicializado en disco duro.
-- [x] Configuración de persistencia e inyección del motor principal completadas.
-- [ ] Implementación de interfaces REST (Controllers) para interactuar con el cliente externo.
+- [x] Configuración de persistencia e inyección de dependencias (`ProductRepository`) completadas.
+- [x] Habilitación de la clase de arranque nativa (`ProductServiceApplication`).
+- [x] Implementación de interfaces REST (`ProductController`) para exponer las operaciones del catálogo.
