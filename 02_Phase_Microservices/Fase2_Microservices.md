@@ -22,3 +22,15 @@ El proyecto sigue el estándar de construcción de Maven:
 - [x] Configuración de persistencia e inyección de dependencias (`ProductRepository`) completadas.
 - [x] Habilitación de la clase de arranque nativa (`ProductServiceApplication`).
 - [x] Implementación de interfaces REST (`ProductController`) para exponer las operaciones del catálogo.
+
+## 📁 Arquitectura Estructural del Módulo .NET 8
+El servicio de gestión de transacciones de compra se inicializó de forma aislada:
+* `OrderArchitecture.sln`: Solución contenedora para el entorno de órdenes.
+* `OrderService.NET/`: Proyecto Web API estructurado bajo controladores tradicionales para exponer las operaciones lógicas de compra de forma federada.
+
+### Estado de Avance del Ecosistema:
+- [x] Catálogo de Productos en Java Spring Boot estructurado y listo.
+- [x] Orquestador `docker-compose.yml` global configurado con MongoDB.
+- [x] Estructura base de `OrderService` en .NET 8 inicializada mediante .NET CLI.
+- [ ] Configuración del bus de mensajes (RabbitMQ) y persistencia en PostgreSQL.
+
