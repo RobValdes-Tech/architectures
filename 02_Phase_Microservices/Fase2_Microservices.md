@@ -114,3 +114,14 @@ Se implementaron los componentes de escucha en el microservicio de Java para int
 - [x] Contrato inmutable del evento y publicador configurados en .NET 8.
 - [x] Configuración de credenciales y Jackson2JsonMessageConverter en Java.
 - [ ] Implementación de la lógica transaccional para decrementar stock en MongoDB.
+
+
+## 📬 Coreografía de Eventos (Consumidor Java)
+* `product/consumer/OrderCreatedConsumer.java`: Modificado para consumir el payload JSON interoperable. Implementa la lógica transaccional que extrae el documento desde MongoDB, valida la disponibilidad de existencias y guarda el decremento real de stock.
+
+### Estado de Avance del Ecosistema:
+- [x] Contrato inmutable del evento y publicador configurados en .NET 8.
+- [x] Configuración de credenciales y Jackson2JsonMessageConverter en Java.
+- [x] Implementación de la lógica transaccional para decrementar stock en MongoDB.
+- [ ] Configuración del servicio de caché distribuido (Redis) para el Carrito de compras.
+
