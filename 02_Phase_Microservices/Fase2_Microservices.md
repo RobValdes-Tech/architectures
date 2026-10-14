@@ -34,3 +34,30 @@ El servicio de gestión de transacciones de compra se inicializó de forma aisla
 - [x] Estructura base de `OrderService` en .NET 8 inicializada mediante .NET CLI.
 - [ ] Configuración del bus de mensajes (RabbitMQ) y persistencia en PostgreSQL.
 
+
+## 📁 Arquitectura Estructural del Módulo .NET 8
+El servicio mapeará las transacciones hacia almacenamiento relacional utilizando la estructura de persistencia que incluye `Models/Order.cs`, `Data/OrderDbContext.cs` y el directorio `Migrations/`.
+
+### Estado de Avance del Ecosistema:
+- [x] Contenedor de PostgreSQL aprovisionado y paquetes EF Core configurados.
+- [x] Generación del andamiaje de la migración inicial (`InitialCreate`).
+- [ ] Aplicación en vivo de las tablas relacionales dentro del contenedor persistente.
+
+
+## 🔧 Resolución de Errores Comunes (Troubleshooting)
+
+### Error 28P01: password authentication failed for user "postgres"
+* **Causa:** Desconexión entre la credencial del archivo de configuración del API (`appsettings.json`) y las variables de entorno del contenedor Docker.
+* **Solución:** Sincronizar el campo `POSTGRES_PASSWORD` del archivo YAML con el parámetro `Password=` de la cadena de conexión de .NET. En caso de persistencia persistida inválida, reconstruir el contenedor usando `docker-compose down -v`.
+
+
+## 📁 Arquitectura Estructural del Módulo .NET 8
+El servicio mapea las transacciones hacia almacenamiento relacional utilizando la siguiente estructura:
+* `Models/Order.cs`: Entidad que representa una orden de compra en el sistema.
+* `Data/OrderDbContext.cs`: Contexto que gestiona las conexiones físicas con el motor transaccional.
+* `Controllers/OrdersController.cs`: Controlador REST que expone los endpoints GET y POST para la administración de órdenes.
+
+### Estado de Avance del Ecosistema:
+- [x] Contenedor de PostgreSQL aprovisionado y base de datos inicializada de forma exitosa.
+- [x] Aplicación en vivo de las tablas relacionales dentro del contenedor persistente.
+- [x] Implementación de interfaces REST (`OrdersController`) para exponer las operaciones de compra.
