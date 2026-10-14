@@ -38,24 +38,14 @@ Se actualizó el archivo `docker-compose.yml` para centralizar la administració
 * **Database:** OrdersDb
 * **User:** postgres
 * **Password:** SecretPassword123!
-
-
-# Bitácora Técnica - Fase 2: Introducción a Microservicios
-**Ecosistema:** Java 17 (Spring Boot) & .NET 8 (C#)
-
 ## 🔧 Gestión de Dependencias en .NET 8 (NuGet)
-Se agregaron las herramientas de persistencia ORM para la comunicación de `OrderService.NET` con la base de datos relacional:
-* **Microsoft.EntityFrameworkCore:** Núcleo del ORM para el mapeo objeto-relacional.
-* **Npgsql.EntityFrameworkCore.PostgreSQL:** Proveedor de datos para traducir las consultas de LINQ a PostgreSQL.
-* **Microsoft.EntityFrameworkCore.Design:** Soporte en tiempo de diseño requerido para la generación y ejecución de migraciones desde la CLI.
+Se agregaron las herramientas de persistencia ORM para la comunicación con la base de datos relacional de órdenes:
 
-## 📁 Arquitectura Estructural del Módulo .NET 8
-El servicio mapeará las transacciones hacia almacenamiento relacional utilizando la siguiente estructura de persistencia:
-* `Models/Order.java`: Entidad de dominio que representa una transacción de compra.
-* `Data/OrderDbContext.java`: Contexto de Entity Framework Core encargado de gestionar las conexiones y el mapeo físico de tablas.
+* **Microsoft.EntityFrameworkCore:** Núcleo del ORM para el mapeo objeto-relacional.
+* **Npgsql.EntityFrameworkCore.PostgreSQL:** Proveedor de datos para traducir las consultas de LINQ en dialecto nativo de PostgreSQL.
+* **Microsoft.EntityFrameworkCore.Design:** Herramienta en tiempo de diseño requerida para la generación y ejecución de migraciones de base de datos desde la CLI.
 
 ### Estado de Avance del Ecosistema:
 - [x] Contenedor de PostgreSQL aprovisionado en docker-compose global.
 - [x] Paquetes de Entity Framework Core configurados en `OrderService.NET`.
-- [x] Creación de la entidad de dominio `Order` y el contexto de datos `OrderDbContext`.
-
+- [ ] Creación de entidades de dominio y el contexto de base de datos (`DbContext`).
