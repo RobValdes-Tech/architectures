@@ -7,11 +7,26 @@ services:
     container_name: products-mongodb
     restart: always
     ports:
-      - "27017:27017" # Puerto estándar expuesto al host local
+      - "27017:27017"
     environment:
       MONGO_INITDB_DATABASE: ProductsDb
     volumes:
       - mongodb_data:/data/db
 
+  # Base de datos relacional para el Microservicio de Órdenes (.NET 8)
+  orders-db:
+    image: postgres:15-alpine
+    container_name: orders-postgres
+    restart: always
+    ports:
+      - "5432:5432" # Puerto estándar expuesto al host local
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SecretPassword123!
+      POSTGRES_DB: OrdersDb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
-  mongodb_data: # Registro persistente de información local
+  mongodb_data:
+  postgres_data: # Registro persistente para los datos de PostgreSQL
