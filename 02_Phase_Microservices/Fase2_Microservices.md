@@ -94,3 +94,16 @@ Se añadieron abstracciones del bus de datos en `OrderService.Net` para iniciar 
 - [x] Definición del contrato inmutable del evento `OrderCreatedEvent`.
 - [x] Configuración de topología de RabbitMQ e inyección del Bus en `Program.cs`.
 - [x] Publicación del evento distribuido desde el endpoint de `OrdersController`.
+
+## 📬 Coreografía de Eventos (Consumidor Java)
+Se implementaron los componentes de escucha en el microservicio de Java para interceptar las publicaciones del bus de datos de .NET:
+
+* `product/dto/OrderCreatedEvent.java`: Record homólogo encargado de acoplar el esquema JSON enviado por MassTransit.
+* `product/consumer/OrderCreatedConsumer.java`: Componente `@RabbitListener` configurado para procesar los mensajes asíncronos y preparar el ajuste de inventario.
+
+### Estado de Avance del Ecosistema:
+- [x] Contrato inmutable del evento y publicador configurados en .NET 8.
+- [x] Dependencia Spring AMQP integrada en el módulo de Java.
+- [x] Creación del DTO de eventos y clase consumidora (`OrderCreatedConsumer`) en Java.
+- [ ] Lógica de decremento de stock persistida en MongoDB al recibir el mensaje.
+
