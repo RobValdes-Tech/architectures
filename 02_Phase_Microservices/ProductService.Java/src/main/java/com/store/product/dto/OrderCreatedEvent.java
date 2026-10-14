@@ -1,13 +1,25 @@
 package com.store.product.dto;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Map;
 
-// Registro inmutable (Record) equivalente al contrato emitido por .NET
+// DTO corregido con mapeo explícito para atrapar la estructura nativa de MassTransit
 public record OrderCreatedEvent(
-    UUID orderId,
+    String orderId,
     String userId,
     String productId,
     int quantity,
-    LocalDateTime createdAt
-) {}
+    String createdAt
+) {
+    // Constructor compacto para extraer los datos desde el objeto raíz 'message' de MassTransit
+    @JsonProperty("message")
+    public OrderCreatedEvent(Map<String, Object> message) {
+        this(
+            (String) message.get("orderId"),
+            (String) message.get("userId"),
+            (String) message.get("productId"),
+            (Integer) message.get("quantity"),
+            (String) message.get("createdAt")
+        );
+    }
+}

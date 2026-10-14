@@ -137,3 +137,8 @@ Se incorporó un entorno asíncrono basado en eventos de alta velocidad para la 
 - [x] Contenedor de Redis adicionado al docker-compose global.
 - [x] Proyecto base CartService.Node inicializado mediante NPM CLI.
 - [ ] Implementación de lógica de conexión a Redis e interfaces Express para el carrito.
+
+### Error: Mapeo de Payload Políglota (Propiedades null de MassTransit a Java)
+* **Causa:** MassTransit envuelve de forma nativa los payloads de los eventos dentro de un nodo raíz llamado `message` en formato camelCase. Spring AMQP lee el JSON de forma plana, interpretando los atributos de dominio como nulos.
+* **Solución:** Implementar un constructor con la anotación `@JsonProperty("message")` en el Record de Java para extraer y tipar de forma manual las claves distribuidas.
+
