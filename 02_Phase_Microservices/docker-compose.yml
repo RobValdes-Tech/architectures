@@ -28,3 +28,15 @@ services:
 volumes:
   mongodb_data:
   postgres_data:
+
+ # Broker de Mensajería Asíncrona para comunicación de eventos globales
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: global-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Puerto estándar de comunicación AMQP
+      - "15672:15672" # Puerto de la interfaz gráfica web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest

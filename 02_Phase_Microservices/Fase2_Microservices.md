@@ -61,3 +61,8 @@ El servicio mapea las transacciones hacia almacenamiento relacional utilizando l
 - [x] Contenedor de PostgreSQL aprovisionado y base de datos inicializada de forma exitosa.
 - [x] Aplicación en vivo de las tablas relacionales dentro del contenedor persistente.
 - [x] Implementación de interfaces REST (`OrdersController`) para exponer las operaciones de compra.
+
+
+
+## 🐳 Orquestación de Infraestructura Local
+Actualiza tu `docker-compose.yml` para incluir **MongoDB** (catalogo, puerto 27017), **PostgreSQL** (`OrderService.NET`, puerto 5432) y **RabbitMQ** (mensajería asíncrona AMQP, puertos 5672/15672 con credenciales predeterminadas `guest / guest`) en la bitácora técnica de la fase.
