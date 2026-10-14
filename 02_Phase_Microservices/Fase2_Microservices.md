@@ -107,3 +107,10 @@ Se implementaron los componentes de escucha en el microservicio de Java para int
 - [x] Creación del DTO de eventos y clase consumidora (`OrderCreatedConsumer`) en Java.
 - [ ] Lógica de decremento de stock persistida en MongoDB al recibir el mensaje.
 
+## 📬 Coreografía de Eventos (Consumidor Java)
+* `product/config/RabbitMQConfig.java`: Configuración del convertidor de mensajes a formato JSON (Jackson) para permitir la interoperabilidad políglota con los eventos emitidos por .NET.
+
+### Estado de Avance del Ecosistema:
+- [x] Contrato inmutable del evento y publicador configurados en .NET 8.
+- [x] Configuración de credenciales y Jackson2JsonMessageConverter en Java.
+- [ ] Implementación de la lógica transaccional para decrementar stock en MongoDB.
