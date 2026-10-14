@@ -125,3 +125,15 @@ Se implementaron los componentes de escucha en el microservicio de Java para int
 - [x] Implementación de la lógica transaccional para decrementar stock en MongoDB.
 - [ ] Configuración del servicio de caché distribuido (Redis) para el Carrito de compras.
 
+## 📁 Arquitectura Estructural del Módulo Node.js
+Se incorporó un entorno asíncrono basado en eventos de alta velocidad para la gestión de datos efímeros en el servidor:
+* `CartService.Node/package.json`: Manifiesto de dependencias y scripts de arranque para el microservicio de carrito.
+
+## 🐳 Orquestación de Infraestructura Local
+* **Redis (Puerto 6379):** Almacenamiento clave-valor en memoria de baja latencia utilizado para las sesiones del carrito de compras (`cart-cache`).
+
+### Estado de Avance del Ecosistema:
+- [x] Sincronización políglota RabbitMQ completada entre .NET 8 y Java.
+- [x] Contenedor de Redis adicionado al docker-compose global.
+- [x] Proyecto base CartService.Node inicializado mediante NPM CLI.
+- [ ] Implementación de lógica de conexión a Redis e interfaces Express para el carrito.

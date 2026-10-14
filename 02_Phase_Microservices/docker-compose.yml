@@ -40,3 +40,19 @@ volumes:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+
+
+ # Memoria en Caché Distribuida en memoria para el Microservicio de Carrito (Node.js)
+  cart-cache:
+    image: redis:7-alpine
+    container_name: cart-redis
+    restart: always
+    ports:
+      - "6379:6379" # Puerto estándar de comunicación de Redis
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  redis_data: # Registro persistente de volumen para Redis
