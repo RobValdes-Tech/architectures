@@ -1,67 +1,164 @@
-# Bitácora Técnica - Fase 2: Arquitectura de Microservicios Políglota
-**Ecosistema:** Java 17 (Spring Boot) & .NET 8 (C#) & Node.js (JavaScript)
+# Runbook de Capacitación - Fase 2: Arquitectura de Microservicios Políglota y Eventos
+**Ecosistema:** Java 17 (Spring Boot) & .NET 8 (C#) & Node.js (JavaScript)  
+**Host de Desarrollo:** Windows 10 (Docker Desktop + WSL2)  
+**Repositorio:** GitHub - RobValdes-Tech/architectures  
 
-Este documento detalla el runbook de diseño, orquestación de infraestructura local y la coreografía de eventos asíncronos para el sistema distribuido de la tienda.
+Este documento constituye una guía avanzada de ingeniería de sistemas distribuida para capacitar desarrolladores Junior. Describe el desacoplamiento de dominios, la persistencia políglota aislada y la coreografía de eventos asíncronos mediante un Message Broker.
 
-## 🏛️ Decisiones de Diseño Arquitectónico
-1. **Desacoplamiento de Dominios:** Se rompe el monolito federando las capacidades en tres servicios autónomos con ciclos de vida independientes (`product-service`, `OrderService.Net` y `CartService.Node`).
-2. **Persistencia Políglota Dedicada:** Cada microservicio administra su propio motor de base de datos para garantizar el aislamiento absoluto del almacenamiento:
-   * **MongoDB:** Almacenamiento NoSQL documental de alta lectura para el catálogo de productos.
-   * **PostgreSQL:** Almacenamiento relacional transaccional para la gestión de órdenes de compra.
-   * **Redis Cache:** Almacenamiento clave-valor en memoria de ultra baja latencia para los carritos temporales.
-3. **Coreografía de Eventos Asíncronos:** La comunicación inter-servicio se realiza sin acoplamiento HTTP directo, delegando el transporte de mensajes al broker de **RabbitMQ** mediante el protocolo AMQP.
+---
 
-## 📁 Arquitectura Estructural del Ecosistema
+## 📋 Índice del Runbook
+1. [Vistas de Arquitectura y Diagramas de Integración](#1-vistas-de-arquitectura-y-diagramas-de-integración)
+   * [Diagrama de Arquitectura de Bloques Distribuidos](#diagrama-de-arquitectura-de-bloques-distribuidos)
+   * [Diagrama de Secuencia de la Coreografía de Eventos](#diagrama-de-secuencia-de-la-coreografía-de-eventos)
+2. [Estructura y Modelado de Datos (Persistencia Políglota)](#2-estructura-y-modelado-de-datos-persistencia-políglota)
+   * [Diagrama de Entidad-Relación (ER) y Modelos NoSQL](#diagrama-de-entidad-relación-er-y-modelos-nosql)
+   * [Scripts DDL de Inicialización de Bases de Datos](#scripts-ddl-de-inicialización-de-bases-de-datos)
+3. [Manifiesto de Infraestructura Global y Orquestación](#3-manifiesto-de-infraestructura-global-y-orquestación)
+   * [Código del Archivo docker-compose.yml](#código-del-archivo-docker-composeyml)
+   * [Comandos CLI para el Control de Contenedores](#comandos-cli-para-el-control-de-contenedores)
+4. [Guía de Implementación por Componente de Software](#4-guía-de-implementación-por-componente-de-software)
+   * [Componente 4.1: Microservicio de Productos (Java)](#componente-41-microservicio-de-productos-java)
+   * [Componente 4.2: Microservicio de Órdenes (.NET 8)](#componente-42-microservicio-de-órdenes-net-8)
+   * [Componente 4.3: Microservicio de Carrito (Node.js - Puente de Entrada)](#componente-43-microservicio-de-carrito-nodejs---puente-de-entrada)
+5. [Runbook de Verificación y Solución de Errores (Troubleshooting)](#5-runbook-de-verificación-y-solución-de-errores-troubleshooting)
 
-### 1. Catálogo de Productos (Java 17 + Spring Boot + MongoDB)
-* `pom.xml`: Gestión de dependencias integrando `spring-boot-starter-data-mongodb` y `spring-boot-starter-amqp`.
-* `src/main/resources/application.properties`: Configuración del puerto de escucha `8081` y credenciales de acceso al clúster de Mongo.
-* `product/model/Product.java`: Entidad para el mapeo documental en las colecciones de MongoDB.
-* `product/repository/ProductRepository.java`: Abstracción CRUD que hereda de `MongoRepository`.
-* `product/config/RabbitMQConfig.java`: Configuración del `Jackson2JsonMessageConverter` y declaración de los Beans para el autoprovisionamiento de colas.
-* `product/dto/OrderCreatedEvent.java`: Record inmutable simplificado para la deserialización del payload asíncrono.
-* `product/consumer/OrderCreatedConsumer.java`: Oyente `@RabbitListener` que intercepta las compras y decrementa las existencias en MongoDB.
+---
 
-### 2. Gestión de Órdenes (.NET 8 + PostgreSQL + MassTransit)
-* `OrderService.Net.csproj`: Adición de paquetes NuGet de Entity Framework Core (`Npgsql.EntityFrameworkCore.PostgreSQL`) y MassTransit (`MassTransit.RabbitMQ`).
-* `appsettings.json`: Registro de la cadena de conexión relacional apuntando al contenedor local.
-* `Program.cs`: Inyección de dependencias del `OrderDbContext` y configuración de la topología AMQP con `cfg.UseRawJsonSerializer()`.
-* `Models/Order.cs`: Clase que modela la tabla física de transacciones.
-* `Shared/Events/OrderCreatedEvent.cs`: Record inmutable que define el contrato global del evento de negocio.
-* `Controllers/OrdersController.cs`: Controlador REST que expone el puerto `5291`, guarda la orden en base de datos y publica el evento en el bus.
+## 1. Vistas de Arquitectura y Diagramas de Integración
 
-### 3. Carrito de Compras (Node.js + Redis Cache)
-* `package.json`: Definición de dependencias ligeras Express, Redis y cliente AMQP (`amqplib`).
-* `server.js`: Servidor web en el puerto `8082` que expone endpoints para gestionar el caché y levanta un consumidor asíncrono en segundo plano para limpiar las sesiones de los usuarios al concretarse un checkout.
+### Diagrama de Arquitectura de Bloques Distribuidos
+Muestra cómo se rompe el monolito. Cada dominio funcional cuenta con su propio runtime, puerto independiente y base de datos aislada.
 
-## 🐳 Orquestación de Infraestructura Local (`docker-compose.yml`)
-Se centralizó la administración del entorno distribuido en un único manifiesto YAML que aprovisiona los cuatro contenedores interconectados bajo un puente de red común expuesto hacia el sistema operativo:
-* **products-mongodb (Puerto 27017):** Inicializado con credenciales explícitas en base de datos.
-* **orders-postgres (Puerto 5432):** Motor relacional persistente con volumen local asignado.
-* **cart-redis (Puerto 6379):** Memoria en caché de baja latencia.
-* **global-rabbitmq (Puertos 5672 / 15672):** Broker AMQP y panel web de administración (`guest/guest`).
+```mermaid
+graph TD
+    Client([Postman / Cliente Externo]) -->|POST :8081 /api/products| JavaService[ProductService Java]
+    Client -->|POST :5291 /api/orders| NetService[OrderService .NET 8]
+    Client -->|POST :8082 /api/cart| NodeService[CartService Node.js]
 
-## 🔧 Resolución de Errores Comunes (Troubleshooting)
+    subgraph Capa_Persistencia [Capa de Persistencia Aislada]
+        JavaService -->|Conexión Nativa| MongoCont[MongoDB :27017]
+        NetService -->|Entity Framework Core| PostgresCont[PostgreSQL :5432]
+        NodeService -->|Cliente Redis| RedisCont[Redis :6379]
+    end
 
-### Error: Mapeo de Payload Políglota (Propiedades null de MassTransit a Java)
-* **Causa:** MassTransit envuelve de forma nativa los payloads de los eventos dentro de un nodo raíz llamado `message` en formato camelCase. Spring AMQP lee el JSON de forma plana, interpretando los atributos de dominio como nulos.
-* **Solución:** Configurar en .NET la directiva `cfg.UseRawJsonSerializer()` para forzar el envío de JSON puro y simplificar el Record de Java con la anotación `@JsonIgnoreProperties(ignoreUnknown = true)` para lograr un desacoplamiento limpio de la mensajería.
+    subgraph Bus_Eventos [Ecosistema de Mensajería Asíncrona]
+        NetService -->|Publica con MassTransit| RabbitMQ[RabbitMQ :5672 / :15672]
+        RabbitMQ -->|Suscripción AMQP| JavaService
+        RabbitMQ -.->|Puente de Conexión Pendiente| NodeService
+    end
+```
 
-### Error 13 (Unauthorized): Command update requires authentication on MongoDB
-* **Causa:** El contenedor de MongoDB restringe las operaciones de escritura anónimas por políticas de seguridad locales.
-* **Solución:** Definir variables de entorno de inicialización de usuarios raíz (`MONGO_INITDB_ROOT_USERNAME`) en el archivo docker-compose y actualizar la URI de conexión de Spring Boot incluyendo las credenciales con el parámetro `?authSource=admin`.
+### Diagrama de Secuencia de la Coreografía de Eventos
+Ilustra el comportamiento del sistema cuando ocurre una compra, demostrando la reactividad y el desacoplamiento temporal de la plataforma.
 
-### Error: Bind for 0.0.0.0:<PORT> failed: port is already allocated
-* **Causa:** Procesos o contenedores huérfanos se quedaron acaparando las interfaces de red del host local de Windows 10 (típico con puertos 27017 o 6379).
-* **Solución:** Ejecutar consultas de rastreo `Get-NetTCPConnection -LocalPort <PORT>` en PowerShell y forzar la finalización de las tareas colgadas usando `Stop-Process -Id <PID> -Force` para liberar el puerto antes de lanzar el clúster.
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente as Desarrollador Junior / Postman
+    participant Net as OrderService (.NET :5291)
+    participant DB_Rel as PostgreSQL (:5432)
+    participant Broker as RabbitMQ (:5672)
+    participant Java as ProductService (Java :8081)
+    participant DB_Doc as MongoDB (:27017)
 
-## 🧪 Evidencia de Pruebas de Integración y Coreografía Políglota
-Se validó con éxito el flujo de mensajería asíncrona interoperable en tiempo real:
-1. El catálogo en Java Spring Boot persistió el producto inicial (`PROD-100`) con un stock base de 50 unidades en **MongoDB** bajo el esquema unificado de credenciales de forma exitosa (HTTP 201).
-2. El API de .NET 8 (`OrdersController`) procesó una compra simulada en el puerto `5291`, registrando la transacción en **PostgreSQL** (HTTP 201).
-3. El Bus de datos de **MassTransit** transmitió el evento de forma plana a **RabbitMQ**, gatillando de forma reactiva el decremento de inventario en Java a **48 unidades** en MongoDB de manera automática y transparente.
+    Cliente->>Net: POST /api/orders (Payload Compra)
+    Note over Net,DB_Rel: Persistencia Relacional
+    Net->>DB_Rel: INSERT INTO orders (Id, UserId, ProductId, Quantity)
+    DB_Rel-->>Net: Transacción Confirmada
+    
+    Note over Net,Broker: Disparo Asíncrono (Raw JSON)
+    Net->>Broker: Publish(OrderCreatedEvent) plano
+    Net-->>Cliente: HTTP 201 Created (Respuesta Inmediata)
 
-### Manifestación del Archivo de Infraestructura (`docker-compose.yml`)
+    Note over Broker,Java: Reactividad Guiada por Eventos
+    Broker->>Java: Envío de Mensaje a 'order-created-product-service-queue'
+    Java->>DB_Doc: findById(productId)
+    DB_Doc-->>Java: Retorna Documento de Producto
+    
+    Note over Java,DB_Doc: Validación y Decremento de Stock
+    Java->>DB_Doc: save(product con stock - quantity)
+    DB_Doc-->>Java: Documento Actualizado
+    Note over Java: Log en Consola: "Nuevo Stock Confirmado"
+```
+
+---
+
+## 2. Estructura y Modelado de Datos (Persistencia Políglota)
+
+### Diagrama de Entidad-Relación (ER) y Modelos NoSQL
+
+```mermaid
+erDiagram
+    %% Base de Datos Relacional (PostgreSQL)
+    ORDERS {
+        uuid id PK
+        string user_id
+        string product_id
+        int quantity
+        timestamp created_at
+    }
+
+    %% Base de Datos NoSQL Documental (MongoDB)
+    PRODUCTS {
+        string _id PK
+        string name
+        double price
+        int stock
+    }
+
+    %% Almacenamiento en Memoria Caché (Redis)
+    CARTS {
+        string key_userId PK
+        string field_productId
+        string value_quantity
+    }
+
+    ORDERS }o--|| PRODUCTS : "Referencia lógica de dominio"
+```
+
+### Scripts DDL de Inicialización de Bases de Datos
+
+#### 1. Esquema Relacional de Transacciones (PostgreSQL)
+Este script es ejecutado automáticamente por Entity Framework Core al aplicar la migración inicial.
+```sql
+-- Creación de la Tabla de Historial de Migraciones
+CREATE TABLE IF NOT EXISTS "__EFMigrationsHistory" (
+    "MigrationId" character varying(150) NOT NULL,
+    "ProductVersion" character varying(32) NOT NULL,
+    CONSTRAINT "PK___EFMigrationsHistory" PRIMARY KEY ("MigrationId")
+);
+
+-- Creación de la Tabla de Órdenes
+CREATE TABLE orders (
+    id uuid NOT NULL,
+    user_id character varying(255) NOT NULL,
+    product_id character varying(255) NOT NULL,
+    quantity integer NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    CONSTRAINT "PK_orders" PRIMARY KEY (id)
+);
+```
+
+#### 2. Esquema NoSQL Documental (MongoDB)
+Estructura JSON de la colección `products` dentro de la base de datos `ProductsDb`.
+```json
+{
+  "_id": "PROD-100",
+  "name": "Hoka Clifton 13 Wide",
+  "price": 140.00,
+  "stock": 50
+}
+```
+
+---
+
+## 3. Manifiesto de Infraestructura Global y Orquestación
+
+### Código del Archivo `docker-compose.yml`
+Ubicado en la raíz de la Fase 2 para aprovisionar los contenedores locales.
+
+*Ruta exacta:* `02_Phase_Microservices/docker-compose.yml`
 ```yaml
 version: '3.8'
 
@@ -121,3 +218,57 @@ volumes:
   postgres_data:
   redis_data:
 ```
+
+### Comandos CLI para el Control de Contenedores
+```powershell
+# Acceder a la carpeta de infraestructura
+cd C:\Users\rob\proyectos\Tech-stack\architectures\02_Phase_Microservices
+
+# Levantar los servicios y limpiar volumenes corruptos anteriores
+docker-compose down -v
+docker-compose up -d
+
+# Validar que los puertos estén expuestos correctamente hacia Windows 10
+docker ps
+```
+
+---
+
+## 4. Guía de Implementación por Componente de Software
+
+### Componente 4.1: Microservicio de Productos (Java)
+
+#### Propiedades de Conexión (`ProductService.Java/src/main/resources/application.properties`)
+```properties
+server.port=8081
+spring.data.mongodb.uri=mongodb://dbuser:dbpassword123!@localhost:27017/ProductsDb?authSource=admin
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+```
+
+#### Clase de Configuración de Mensajes (`config/RabbitMQConfig.java`)
+```java
+package com.store.product.config;
+
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class RabbitMQConfig {
+
+    @Bean
+    public Queue productQueue() {
+        return new Queue("order-created-product-service-queue", true);
+    }
+
+    @Bean
+    public FanoutExchange orderExchange() {
+        return new FanoutExchange("OrderService.Net.Shared.Events:OrderCreatedEvent", true, false);
+    }
+
+    @Bean
+    public Binding binding(Queue productQueue, FanoutExchange orderExchange) {
