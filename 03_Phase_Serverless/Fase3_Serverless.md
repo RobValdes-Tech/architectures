@@ -113,3 +113,13 @@ Para ejecutar el módulo de auditoría, el desarrollador Junior solo debe ingres
 ```powershell
 .\run-serverless.ps1
 ```
+
+## 📬 Coreografía de Eventos Serverless (Event-Driven)
+Se incorporó un puente de integración políglota para conectar la topología AMQP con el paradigma FaaS:
+* `03_Phase_Serverless/event-bridge.js`: Suscriptor desacoplado que escucha el Exchange de la Fase 2 y gatilla la ejecución de la función por cada transacción.
+
+### Estado de Avance del Ecosistema:
+- [x] Entorno Functions Framework local configurado.
+- [x] Script `run-serverless.ps1` de arranque listo.
+- [x] Puente de eventos asíncronos `event-bridge.js` integrado.
+- [ ] Smoke Test completo del ecosistema (Monolito -> Microservicios -> Serverless).

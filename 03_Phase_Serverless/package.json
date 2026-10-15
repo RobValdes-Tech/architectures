@@ -11,6 +11,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@google-cloud/functions-framework": "^5.0.5"
+    "@google-cloud/functions-framework": "^5.0.5",
+    "amqplib": "^2.2.0",
+    "axios": "^1.20.0"
   }
 }
