@@ -123,3 +123,25 @@ Se incorporó un puente de integración políglota para conectar la topología A
 - [x] Script `run-serverless.ps1` de arranque listo.
 - [x] Puente de eventos asíncronos `event-bridge.js` integrado.
 - [ ] Smoke Test completo del ecosistema (Monolito -> Microservicios -> Serverless).
+
+## 🧪 Evidencia del Smoke Test de Extremo a Extremo (Prueba Reina)
+Para validar la funcionalidad total, el desarrollador Junior debe asegurar la ejecución simultánea de **5 entornos de proceso** independientes en su host local:
+
+1. **Infraestructura Core (Docker):** Contenedores de bases de datos y broker activos (`docker-compose up -d`).
+2. **Microservicio de Catálogo (Java):** Servidor Spring Boot en el puerto `8081` (`mvn spring-boot:run`).
+3. **Microservicio de Órdenes (.NET 8):** Servidor Kestrel emisor en el puerto `5291` (`dotnet run`).
+4. **Runtime Serverless (FaaS Node.js):** Functions Framework escuchando en el puerto `8080` (`.\run-serverless.ps1`).
+5. **Puente Conector AMQP (Node.js):** Script de enlace distribuido (`node event-bridge.js`).
+
+### Logs de Verificación Exitosa:
+Tras impactar el puerto `5291` con un HTTP POST, el ecosistema reacciona de forma reactiva en cadena:
+* **Java Mongo DB:** `Stock actualizado con éxito. Stock anterior: 48 | Nuevo Stock: 46`
+* **FaaS Serverless Node.js:** 
+  ```text
+  ====== FUNCIÓN SERVERLESS GATILLADA BAJO DEMANDA ======
+  [AUDIT LOG] Procesando transacción para el Producto ID: PROD-100
+  [AUDIT LOG] Unidades adquiridas: 2
+  [ANALÍTICA] Evento analizado con éxito de forma asíncrona.
+  ```
+
+
