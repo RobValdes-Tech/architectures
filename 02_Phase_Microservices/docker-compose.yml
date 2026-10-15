@@ -1,55 +1,57 @@
+version: '3.8'
+
 services:
-  # Base de datos documental para el Microservicio de Productos (Java)
+  # 1. Base de Datos Documental (Java)
   products-db:
     image: mongo:6.0
     container_name: products-mongodb
     restart: always
     ports:
-      - "27018:27017"
+      - "27017:27017" # <-- Forzar comillas si hay conflictos de red
     environment:
+      MONGO_INITDB_ROOT_USERNAME: dbuser
+      MONGO_INITDB_ROOT_PASSWORD: dbpassword123!
       MONGO_INITDB_DATABASE: ProductsDb
-    command: mongod --noauth # <-- Forzar arranque sin politicas de autenticacion local
     volumes:
       - mongodb_data:/data/db
-  # Base de datos relacional para el Microservicio de Órdenes (.NET 8)
+
+  # 2. Base de Datos Relacional (.NET 8)
   orders-db:
     image: postgres:15-alpine
     container_name: orders-postgres
     restart: always
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: SecretPassword123!
       POSTGRES_DB: OrdersDb
     volumes:
       - postgres_data:/var/lib/postgresql/data
- 
 
- # Broker de Mensajería Asíncrona para comunicación de eventos globales
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: global-rabbitmq
-    restart: always
-    ports:
-      - "5672:5672"   # Puerto estándar de comunicación AMQP
-      - "15672:15672" # Puerto de la interfaz gráfica web de administración
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-
-
- # Memoria en Caché Distribuida en memoria para el Microservicio de Carrito (Node.js)
+  # 3. Memoria en Caché Distribuida (Node.js)
   cart-cache:
     image: redis:7-alpine
     container_name: cart-redis
     restart: always
     ports:
-      - "6379:6379" # Puerto estándar de comunicación de Redis
+      - "6379:6379"
     volumes:
       - redis_data:/data
+
+  # 4. Broker de Mensajería Asíncrona (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: global-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
 
 volumes:
   mongodb_data:
   postgres_data:
-  redis_data: # Registro persistente de volumen para Redis
+  redis_data:
