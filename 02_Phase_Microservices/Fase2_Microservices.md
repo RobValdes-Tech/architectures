@@ -60,3 +60,64 @@ Se validó con éxito el flujo de mensajería asíncrona interoperable en tiempo
 1. El catálogo en Java Spring Boot persistió el producto inicial (`PROD-100`) con un stock base de 50 unidades en **MongoDB** bajo el esquema unificado de credenciales de forma exitosa (HTTP 201).
 2. El API de .NET 8 (`OrdersController`) procesó una compra simulada en el puerto `5291`, registrando la transacción en **PostgreSQL** (HTTP 201).
 3. El Bus de datos de **MassTransit** transmitió el evento de forma plana a **RabbitMQ**, gatillando de forma reactiva el decremento de inventario en Java a **48 unidades** en MongoDB de manera automática y transparente.
+
+### Manifestación del Archivo de Infraestructura (`docker-compose.yml`)
+```yaml
+version: '3.8'
+
+services:
+  # 1. Base de Datos Documental (Java - Catálogo de Productos)
+  products-db:
+    image: mongo:6.0
+    container_name: products-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: dbuser
+      MONGO_INITDB_ROOT_PASSWORD: dbpassword123!
+      MONGO_INITDB_DATABASE: ProductsDb
+    volumes:
+      - mongodb_data:/data/db
+
+  # 2. Base de Datos Relacional (.NET 8 - Gestión de Órdenes)
+  orders-db:
+    image: postgres:15-alpine
+    container_name: orders-postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SecretPassword123!
+      POSTGRES_DB: OrdersDb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 3. Memoria en Caché Distribuida (Node.js - Carrito de Compras)
+  cart-cache:
+    image: redis:7-alpine
+    container_name: cart-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # 4. Broker de Mensajería Asíncrona (Comunicación entre Plataformas)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: global-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+volumes:
+  mongodb_data:
+  postgres_data:
+  redis_data:
+```
