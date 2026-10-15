@@ -60,3 +60,15 @@ Esta bitácora recopila las incidencias reales detectadas durante la fase de des
 * **Mensaje de Error:** `Connection refused` (Los contenedores están *Up* pero Postman no puede conectar).
 * **Causa:** El uso de redes internas (`networks`) en Docker aísla de forma estricta los puertos si no se declaran explícitamente en formato de cadena hacia el host local.
 * **Solución:** Eliminar el aislamiento estricto y envolver los mapeos entre comillas dobles (`"27017:27017"`) en el manifiesto global para forzar la exposición nativa hacia Windows.
+
+---
+
+## 📊 Resumen de Puertos y Servicios del Sistema
+
+| Puerto | Servicio / Componente | Tecnología | Propósito |
+| :--- | :--- | :--- | :--- |
+| **8081** | API de Productos | Java / Spring Boot | Gestión del catálogo y stock. |
+| **5291** | Servicio de Órdenes | .NET Core | Procesamiento y generación de compras. |
+| **27017** | Base de Datos NoSQL | MongoDB | Almacenamiento del inventario de productos. |
+| **6379** | Caché / Broker | Redis | Soporte de red e interoperabilidad (mencionado en red). |
+| *N/A* | Base de Datos Relacional | PostgreSQL | Motor relacional del ecosistema (Error 28P01). |
