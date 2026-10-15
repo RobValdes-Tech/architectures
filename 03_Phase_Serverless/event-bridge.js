@@ -21,29 +21,29 @@ async function startBridge() {
 
         channel.consume(QUEUE_NAME, async (msg) => {
             if (msg !== null) {
-                console.log('\n[BRIDGE] ¡Evento detectado en el Bus de Datos!');
+                console.log('\n[BRIDGE] ¡Evento de compra detectado en el Bus de Datos!');
                 const rawPayload = JSON.parse(msg.content.toString());
                 
-                // Extraer el mensaje plano (Raw JSON)
+                // Extraer el mensaje plano (Raw JSON) omitiendo metadatos redundantes
                 const orderData = rawPayload.message || rawPayload;
 
                 try {
-                    console.log(`[BRIDGE] Despertando Función Serverless en ${FUNCTION_URL}...`);
-                    // Disparo HTTP asíncronamente a la FaaS local
+                    console.log(`[BRIDGE] Despertando Funcion Serverless bajo demanda en ${FUNCTION_URL}...`);
+                    // Disparo HTTP síncrono para despertar a la FaaS local
                     const response = await axios.post(FUNCTION_URL, orderData);
-                    console.log(`[SERVERLESS RESPONSE] Estatus: ${response.status} - ${response.data.status}`);
+                    console.log(`[SERVERLESS RESPONSE] Estatus: ${response.status} - Mensaje: ${response.data.status}`);
                     
-                    channel.ack(msg); // Confirmar mensaje procesado con éxito
+                    channel.ack(msg); // Confirmar mensaje procesado con éxito en el broker
                 } catch (error) {
-                    console.error('[BRIDGE ERROR] La función Serverless no respondió:', error.message);
-                    channel.nack(msg, false, true); // Reencolar el mensaje para reintento
+                    console.error('[BRIDGE ERROR] La funcion Serverless no respondio:', error.message);
+                    channel.nack(msg, false, true); // Reencolar el mensaje en RabbitMQ para reintento seguro
                 }
             }
         });
 
     } catch (error) {
-        console.error('[BRIDGE CRITICAL] Error en el bus de datos:', error.message);
-        setTimeout(startBridge, 5000); // Reintento de conexión automática
+        console.error('[BRIDGE CRITICAL] Error de conexion en el bus de datos:', error.message);
+        setTimeout(startBridge, 5000); // Reintento de conexion automatica cada 5 segundos
     }
 }
 
