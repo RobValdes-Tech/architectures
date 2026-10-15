@@ -8,7 +8,9 @@ services:
       - "27018:27017"
     environment:
       MONGO_INITDB_DATABASE: ProductsDb
-    
+    command: mongod --noauth # <-- Forzar arranque sin politicas de autenticacion local
+    volumes:
+      - mongodb_data:/data/db
   # Base de datos relacional para el Microservicio de Órdenes (.NET 8)
   orders-db:
     image: postgres:15-alpine
