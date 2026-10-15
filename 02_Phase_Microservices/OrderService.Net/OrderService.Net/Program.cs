@@ -12,7 +12,6 @@ builder.Services.AddDbContext<OrderDbContext>(options =>
 // 2. CONFIGURACIÓN GLOBAL DE MASSTRANSIT & RABBITMQ
 builder.Services.AddMassTransit(x =>
 {
-    // Indicar que utilizaremos RabbitMQ como broker de transporte
     x.UsingRabbitMq((context, cfg) =>
     {
         cfg.Host("localhost", "/", h =>
@@ -20,8 +19,12 @@ builder.Services.AddMassTransit(x =>
             h.Username("guest");
             h.Password("guest");
         });
+
+        // Forzar a MassTransit a enviar JSON plano y limpio (Apto para interoperabilidad con Java/Node)
+        cfg.UseRawJsonSerializer(); 
     });
 });
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
