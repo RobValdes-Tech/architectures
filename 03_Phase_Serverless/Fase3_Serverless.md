@@ -103,3 +103,13 @@ Petición de verificación realizada de forma exitosa en el entorno local emulad
 }
 ```
 ---
+
+
+### Paso 2.3: Script de Automatización de Despliegue
+Se incorporó un script de orquestación en PowerShell para estandarizar el arranque del entorno FaaS local:
+* `03_Phase_Serverless/run-serverless.ps1`: Automatiza la validación de dependencias `npm` e inicializa el runtime bajo demanda.
+
+Para ejecutar el módulo de auditoría, el desarrollador Junior solo debe ingresar:
+```powershell
+.\run-serverless.ps1
+```
